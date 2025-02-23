@@ -3,7 +3,6 @@ import numpy as np
 import cv2 as cv
 import urllib.request
 
-# Função de callback para os sliders (não faz nada, mas é necessária)
 def on_change(value):
     pass
 
