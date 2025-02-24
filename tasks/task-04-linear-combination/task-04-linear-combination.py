@@ -17,12 +17,9 @@ def linear_combination(i1: np.ndarray, i2: np.ndarray, a1: float, a2: float) -> 
     """
     # Ensure images have the same dimensions
     if i1.shape != i2.shape:
-        # Resize i2 to match i1's dimensions
-        ##i2 = cv2.resize(i2, (i1.shape[1], i1.shape[0]))
-        print("Resized i2 to match i1's dimensions.")
+        raise ValueError("Input images must have the same dimensions.")
 
     ### START CODE HERE ###
-    # Compute the linear combination
 
     i_out = cv2.addWeighted(i1, a1, i2, a2, 0)
 
@@ -44,8 +41,3 @@ if __name__ == "__main__":
 
     # Compute the linear combination
     output = linear_combination(i1, i2, a1, a2)
-
-    # Display the result
-    cv2.imshow('Linear Combination', output)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()

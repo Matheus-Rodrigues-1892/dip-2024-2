@@ -10,21 +10,18 @@ def get_image_info(image):
     Returns:
     - dict: Dictionary containing image metadata and statistics.
     """
-    
-    # Extract image dimensions
+    ### START CODE HERE ###
     height, width = image.shape[:2]
     
-    # Get the data type of the image
     dtype = image.dtype
     
-    # Determine the depth (number of channels) of the image
     depth = 1 if len(image.shape) == 2 else image.shape[2]
     
-    # Calculate statistical information
     min_val = np.min(image)
     max_val = np.max(image)
     mean_val = np.mean(image)
     std_val = np.std(image)
+    ### END CODE HERE ###
     
     return {
         "width": width,

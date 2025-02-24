@@ -1,10 +1,6 @@
 import argparse
 import numpy as np
 import cv2 as cv
-import urllib.request
-
-def on_change(value):
-    pass
 
 def load_image_from_url(url, **kwargs):
     """
@@ -17,59 +13,16 @@ def load_image_from_url(url, **kwargs):
     Returns:
     - image: Loaded image as a NumPy array.
     """
-    resp = urllib.request.urlopen(url)
-    image_array = np.asarray(bytearray(resp.read()), dtype=np.uint8)
-    image = cv.imdecode(image_array, kwargs.get('flags', cv.IMREAD_COLOR))
+    
+    ### START CODE HERE ###
+    import urllib.request 
+    with urllib.request.urlopen(url) as response:
+        image_data = response.read()
+    image_array = np.asarray(bytearray(image_data), dtype=np.uint8)
+    flags = kwargs.get('flags', cv.IMREAD_COLOR)
+    image = cv.imdecode(image_array, flags)
+    ### END CODE HERE ###
+    
     return image
 
-# Argument parser
-parser = argparse.ArgumentParser(description='Load and blend images from URLs.')
-parser.add_argument('url1', type=str, help='URL of the first image')
-parser.add_argument('url2', type=str, help='URL of the second image')
-args = parser.parse_args()
-
-# Carrega as imagens das URLs
-f = load_image_from_url(args.url1)
-g = load_image_from_url(args.url2)
-
-# Verifica se as imagens foram carregadas corretamente
-if f is None or g is None:
-    print("Erro ao carregar as imagens. Verifique os URLs.")
-    exit()
-
-# Redimensiona a imagem g para o mesmo tamanho da imagem f
-g = cv.resize(g, (f.shape[1], f.shape[0]))
-
-# Normaliza as imagens para o intervalo [0, 1]
-f = f.astype(np.float32) / 255.0
-g = g.astype(np.float32) / 255.0
-
-# Cria uma única janela para sliders e imagem
-cv.namedWindow('Ajustes')
-
-# Cria sliders na janela
-cv.createTrackbar('a', 'Ajustes', 0, 100, on_change)
-cv.createTrackbar('b', 'Ajustes', 0, 100, on_change)
-
-while True:
-    # Obtém os valores atuais dos sliders e normaliza para o intervalo [0, 1]
-    a = cv.getTrackbarPos('a', 'Ajustes') / 100.0
-    b = cv.getTrackbarPos('b', 'Ajustes') / 100.0
-
-    # Aplica a convolução linear: h = a * f + b * g
-    h = a * f + b * g
-    h_display = (h * 255).astype(np.uint8)
-
-    # Concatena a imagem gerada com os sliders
-    sliders = np.zeros((50, f.shape[1], 3), dtype=np.uint8)  # Faixa preta para sliders
-    display = np.vstack((sliders, h_display))
-
-    # Mostra o resultado da convolução
-    cv.imshow('Ajustes', display)
-
-    # Espera por 1 ms e verifica se o usuário pressionou a tecla 'q' para sair
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Destroi todas as janelas
-cv.destroyAllWindows()
+load_image_from_url()
