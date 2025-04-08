@@ -26,73 +26,98 @@ Notes:
 
 import cv2 as cv
 import numpy as np
-from skimage.exposure import match_histograms
 import matplotlib.pyplot as plt
+from skimage.exposure import match_histograms
 
+# Função de histogram matching (já implementada anteriormente)
 def match_histograms_rgb(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
-    """
-    Matches the histogram of each RGB channel of the source image to the reference image.
-
-    Args:
-        source_img (np.ndarray): Source image as a NumPy array (H, W, 3).
-        reference_img (np.ndarray): Reference image as a NumPy array (H, W, 3).
-
-    Returns:
-        np.ndarray: Image with matched histograms as a NumPy array (uint8).
-    """
-    # Ensure the input images are in RGB format
-    if source_img.shape[-1] != 3 or reference_img.shape[-1] != 3:
-        raise ValueError("Both source and reference images must be in RGB format.")
-
-    # Initialize an empty array for the matched image
     matched_img = np.zeros_like(source_img, dtype=np.uint8)
 
-    # Match histograms for each channel (R, G, B)
-    for channel in range(3):
-        matched_img[..., channel] = match_histograms(
-            source_img[..., channel], reference_img[..., channel]
-        ).astype(np.uint8)
+    for channel in range(3):  # Iterate over RGB channels
+        source_channel = source_img[:, :, channel].ravel()
+        reference_channel = reference_img[:, :, channel].ravel()
+
+        source_hist, _ = np.histogram(source_channel, bins=256, range=(0, 256), density=True)
+        reference_hist, _ = np.histogram(reference_channel, bins=256, range=(0, 256), density=True)
+
+        source_cdf = np.cumsum(source_hist)
+        reference_cdf = np.cumsum(reference_hist)
+
+        source_cdf_normalized = (source_cdf * 255).astype(np.uint8)
+        reference_cdf_normalized = (reference_cdf * 255).astype(np.uint8)
+
+        mapping = np.zeros(256, dtype=np.uint8)
+        ref_idx = 0
+        for src_idx in range(256):
+            while ref_idx < 255 and reference_cdf_normalized[ref_idx] < source_cdf_normalized[src_idx]:
+                ref_idx += 1
+            mapping[src_idx] = ref_idx
+
+        matched_channel = mapping[source_channel]
+        matched_img[:, :, channel] = matched_channel.reshape(source_img[:, :, channel].shape)
 
     return matched_img
 
-# Load the source and reference images
-source_path = r"C:\Users\mathe\Ufal\dip-2024-2\tasks\task-07-histogram-matching\source.jpg"
-reference_path = r"C:\Users\mathe\Ufal\dip-2024-2\tasks\task-07-histogram-matching\reference.jpg"
-output_path = r"C:\Users\mathe\Ufal\dip-2024-2\tasks\task-07-histogram-matching\output.jpg"
+# Função para aplicar o histogram matching usando scikit-image
+def match_histograms_scikit(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
+    """
+    Matches histograms using scikit-image's match_histograms function.
 
-# OpenCV loads images in BGR format, so we convert them to RGB
-source_img = cv.imread(source_path)
-reference_img = cv.imread(reference_path)
+    Args:
+        source_img (np.ndarray): Source image (H, W, 3) in RGB format.
+        reference_img (np.ndarray): Reference image (H, W, 3) in RGB format.
 
-if source_img is None or reference_img is None:
-    raise FileNotFoundError("Source or reference image not found. Check the file paths.")
+    Returns:
+        np.ndarray: Image with matched histograms (H, W, 3) in RGB format.
+    """
+    return match_histograms(source_img, reference_img).astype(np.uint8)
 
-source_img_rgb = cv.cvtColor(source_img, cv.COLOR_BGR2RGB)
-reference_img_rgb = cv.cvtColor(reference_img, cv.COLOR_BGR2RGB)
+# Carregar as imagens
+source_img = cv.imread("source.jpg")
+reference_img = cv.imread("reference.jpg")
+output_img = cv.imread("output.jpg")
 
-# Perform histogram matching
-matched_img_rgb = match_histograms_rgb(source_img_rgb, reference_img_rgb)
+# Converter para RGB (caso estejam em BGR)
+source_img = cv.cvtColor(source_img, cv.COLOR_BGR2RGB)
+reference_img = cv.cvtColor(reference_img, cv.COLOR_BGR2RGB)
+output_img = cv.cvtColor(output_img, cv.COLOR_BGR2RGB)
 
-# Convert the matched image back to BGR for saving with OpenCV
-matched_img_bgr = cv.cvtColor(matched_img_rgb, cv.COLOR_RGB2BGR)
+# Gerar a imagem transformada
+generated_img = match_histograms_rgb(source_img, reference_img)
 
-# Save the output image
-cv.imwrite(output_path, matched_img_bgr)
+# Salvar a imagem gerada
+generated_output_path = "generated_output.jpg"
+cv.imwrite(generated_output_path, cv.cvtColor(generated_img, cv.COLOR_RGB2BGR))  # Converter de RGB para BGR antes de salvar
+print(f"Generated image saved as {generated_output_path}")
 
-# Optional: Plot histograms of the original and matched images
-def plot_histograms(image, title):
-    colors = ('r', 'g', 'b')
-    plt.figure(figsize=(10, 5))
-    for i, color in enumerate(colors):
-        hist = cv.calcHist([image], [i], None, [256], [0, 256])
-        plt.plot(hist, color=color)
-        plt.xlim([0, 256])
-    plt.title(title)
-    plt.xlabel("Pixel Value")
-    plt.ylabel("Frequency")
+# Gerar a imagem transformada usando scikit-image
+generated_img_scikit = match_histograms_scikit(source_img, reference_img)
+
+# Salvar a imagem gerada pelo scikit-image
+generated_scikit_output_path = "generated_output_scikit.jpg"
+cv.imwrite(generated_scikit_output_path, cv.cvtColor(generated_img_scikit, cv.COLOR_RGB2BGR))  # Converter de RGB para BGR antes de salvar
+print(f"Generated image using scikit-image saved as {generated_scikit_output_path}")
+
+# Função para plotar histogramas
+def plot_histograms_comparison(images, titles, output_file):
+    colors = ['red', 'green', 'blue']
+    plt.figure(figsize=(15, 12))
+
+    for i, (img, title) in enumerate(zip(images, titles)):
+        plt.subplot(3, 2, i + 1)
+        for j, color in enumerate(colors):
+            hist, bins = np.histogram(img[:, :, j], bins=256, range=(0, 256))
+            plt.plot(bins[:-1], hist, color=color, label=f'{color.upper()} Channel')
+        plt.title(title)
+        plt.xlabel('Pixel Intensity')
+        plt.ylabel('Frequency')
+        plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(output_file)
     plt.show()
 
-# Plot histograms for source, reference, and matched images
-plot_histograms(source_img_rgb, "Source Image Histograms")
-plot_histograms(reference_img_rgb, "Reference Image Histograms")
-plot_histograms(matched_img_rgb, "Matched Image Histograms")
+# Plotar e salvar os histogramas comparando todas as imagens
+images = [source_img, reference_img, output_img, generated_img, generated_img_scikit]
+titles = ['Source Image', 'Reference Image', 'Output Image', 'Generated Image (Custom)', 'Generated Image (Scikit-Image)']
+plot_histograms_comparison(images, titles, "histograms_comparison_with_scikit.png")
