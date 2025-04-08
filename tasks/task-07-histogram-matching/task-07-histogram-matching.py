@@ -87,7 +87,7 @@ generated_img = match_histograms_rgb(source_img, reference_img)
 
 # Salvar a imagem gerada
 generated_output_path = "generated_output.jpg"
-cv.imwrite(generated_output_path, cv.cvtColor(generated_img, cv.COLOR_RGB2BGR))  # Converter de RGB para BGR antes de salvar
+cv.imwrite(generated_output_path, generated_img)  # Converter de RGB para BGR antes de salvar
 print(f"Generated image saved as {generated_output_path}")
 
 # Gerar a imagem transformada usando scikit-image
