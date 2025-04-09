@@ -28,11 +28,10 @@ import cv2 as cv
 import numpy as np
 import skimage as ski
 
-# Função de histogram matching (já implementada anteriormente)
 def match_histograms_rgb(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
     matched_img = np.zeros_like(source_img, dtype=np.uint8)
 
-    for channel in range(3):  # Iterate over RGB channels
+    for channel in range(3):  
         source_channel = source_img[:, :, channel].ravel()
         reference_channel = reference_img[:, :, channel].ravel()
 
