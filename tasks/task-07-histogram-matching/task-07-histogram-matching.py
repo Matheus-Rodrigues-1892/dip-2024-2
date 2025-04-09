@@ -26,8 +26,7 @@ Notes:
 
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
-from skimage.exposure import match_histograms
+import skimage as ski
 
 # Função de histogram matching (já implementada anteriormente)
 def match_histograms_rgb(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
@@ -58,66 +57,69 @@ def match_histograms_rgb(source_img: np.ndarray, reference_img: np.ndarray) -> n
 
     return matched_img
 
-# Função para aplicar o histogram matching usando scikit-image
-def match_histograms_scikit(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
-    """
-    Matches histograms using scikit-image's match_histograms function.
+# import matplotlib.pyplot as plt
+# from skimage.exposure import match_histograms
 
-    Args:
-        source_img (np.ndarray): Source image (H, W, 3) in RGB format.
-        reference_img (np.ndarray): Reference image (H, W, 3) in RGB format.
+# # Função para aplicar o histogram matching usando scikit-image
+# def match_histograms_scikit(source_img: np.ndarray, reference_img: np.ndarray) -> np.ndarray:
+#     """
+#     Matches histograms using scikit-image's match_histograms function.
 
-    Returns:
-        np.ndarray: Image with matched histograms (H, W, 3) in RGB format.
-    """
-    return match_histograms(source_img, reference_img).astype(np.uint8)
+#     Args:
+#         source_img (np.ndarray): Source image (H, W, 3) in RGB format.
+#         reference_img (np.ndarray): Reference image (H, W, 3) in RGB format.
 
-# Carregar as imagens
-source_img = cv.imread("source.jpg")
-reference_img = cv.imread("reference.jpg")
-output_img = cv.imread("output.jpg")
+#     Returns:
+#         np.ndarray: Image with matched histograms (H, W, 3) in RGB format.
+#     """
+#     return match_histograms(source_img, reference_img).astype(np.uint8)
 
-# Converter para RGB (caso estejam em BGR)
-source_img = cv.cvtColor(source_img, cv.COLOR_BGR2RGB)
-reference_img = cv.cvtColor(reference_img, cv.COLOR_BGR2RGB)
-output_img = cv.cvtColor(output_img, cv.COLOR_BGR2RGB)
+# # Carregar as imagens
+# source_img = cv.imread("source.jpg")
+# reference_img = cv.imread("reference.jpg")
+# output_img = cv.imread("output.jpg")
 
-# Gerar a imagem transformada
-generated_img = match_histograms_rgb(source_img, reference_img)
+# # Converter para RGB (caso estejam em BGR)
+# source_img = cv.cvtColor(source_img, cv.COLOR_BGR2RGB)
+# reference_img = cv.cvtColor(reference_img, cv.COLOR_BGR2RGB)
+# output_img = cv.cvtColor(output_img, cv.COLOR_BGR2RGB)
 
-# Salvar a imagem gerada
-generated_output_path = "generated_output.jpg"
-cv.imwrite(generated_output_path, generated_img)  # Converter de RGB para BGR antes de salvar
-print(f"Generated image saved as {generated_output_path}")
+# # Gerar a imagem transformada
+# generated_img = match_histograms_rgb(source_img, reference_img)
 
-# Gerar a imagem transformada usando scikit-image
-generated_img_scikit = match_histograms_scikit(source_img, reference_img)
+# # Salvar a imagem gerada
+# generated_output_path = "generated_output.jpg"
+# cv.imwrite(generated_output_path, generated_img)  # Converter de RGB para BGR antes de salvar
+# print(f"Generated image saved as {generated_output_path}")
 
-# Salvar a imagem gerada pelo scikit-image
-generated_scikit_output_path = "generated_output_scikit.jpg"
-cv.imwrite(generated_scikit_output_path, cv.cvtColor(generated_img_scikit, cv.COLOR_RGB2BGR))  # Converter de RGB para BGR antes de salvar
-print(f"Generated image using scikit-image saved as {generated_scikit_output_path}")
+# # Gerar a imagem transformada usando scikit-image
+# generated_img_scikit = match_histograms_scikit(source_img, reference_img)
 
-# Função para plotar histogramas
-def plot_histograms_comparison(images, titles, output_file):
-    colors = ['red', 'green', 'blue']
-    plt.figure(figsize=(15, 12))
+# # Salvar a imagem gerada pelo scikit-image
+# generated_scikit_output_path = "generated_output_scikit.jpg"
+# cv.imwrite(generated_scikit_output_path, cv.cvtColor(generated_img_scikit, cv.COLOR_RGB2BGR))  # Converter de RGB para BGR antes de salvar
+# print(f"Generated image using scikit-image saved as {generated_scikit_output_path}")
 
-    for i, (img, title) in enumerate(zip(images, titles)):
-        plt.subplot(3, 2, i + 1)
-        for j, color in enumerate(colors):
-            hist, bins = np.histogram(img[:, :, j], bins=256, range=(0, 256))
-            plt.plot(bins[:-1], hist, color=color, label=f'{color.upper()} Channel')
-        plt.title(title)
-        plt.xlabel('Pixel Intensity')
-        plt.ylabel('Frequency')
-        plt.legend()
+# # Função para plotar histogramas
+# def plot_histograms_comparison(images, titles, output_file):
+#     colors = ['red', 'green', 'blue']
+#     plt.figure(figsize=(15, 12))
 
-    plt.tight_layout()
-    plt.savefig(output_file)
-    plt.show()
+#     for i, (img, title) in enumerate(zip(images, titles)):
+#         plt.subplot(3, 2, i + 1)
+#         for j, color in enumerate(colors):
+#             hist, bins = np.histogram(img[:, :, j], bins=256, range=(0, 256))
+#             plt.plot(bins[:-1], hist, color=color, label=f'{color.upper()} Channel')
+#         plt.title(title)
+#         plt.xlabel('Pixel Intensity')
+#         plt.ylabel('Frequency')
+#         plt.legend()
 
-# Plotar e salvar os histogramas comparando todas as imagens
-images = [source_img, reference_img, output_img, generated_img, generated_img_scikit]
-titles = ['Source Image', 'Reference Image', 'Output Image', 'Generated Image (Custom)', 'Generated Image (Scikit-Image)']
-plot_histograms_comparison(images, titles, "histograms_comparison_with_scikit.png")
+#     plt.tight_layout()
+#     plt.savefig(output_file)
+#     plt.show()
+
+# # Plotar e salvar os histogramas comparando todas as imagens
+# images = [source_img, reference_img, output_img, generated_img, generated_img_scikit]
+# titles = ['Source Image', 'Reference Image', 'Output Image', 'Generated Image (Custom)', 'Generated Image (Scikit-Image)']
+# plot_histograms_comparison(images, titles, "histograms_comparison_with_scikit.png")
